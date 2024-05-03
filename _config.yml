@@ -104,11 +104,8 @@ menus:
     font: fab fa-fort-awesome
     url: /
   - title: About
-    font: fas fa-paw
-    submenus:
-      - title: Me
-        font: fas fa-user-astronaut
-        url: /about/
+    font: fas fa-user-astronaut
+    url: /about/
   - title: Archive
     font: fas fa-archive
     url: /archive/
@@ -154,4 +151,4 @@ service-worker: true
 
 
 # Whether or not to enable Hitokoto (the bubble on homepage)
-hitokoto: enable # default: false
+hitokoto: false # default: false
