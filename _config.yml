@@ -4,7 +4,7 @@ SEOTitle: Anton-Hacks
 description: Writeups, CTFs & Pentesting
 keyword: "Writeup's, CTF's & Pentesting"
 url: "https://aanton94.github.io"                   # your host, for absolute URL
-baseurl: "/blog"                                         # for example, '/blog' if your blog hosted on 'host/blog'
+baseurl: "/blog"                                    # for example, '/blog' if your blog hosted on 'host/blog'
 avatar: "img/header-avatar.jpeg"                    # the avatar showing on the homepage
 
 
@@ -55,10 +55,10 @@ collections:
 sns:
   RSS: true
   github_username: aanton94
-  weibo_username:
-  zhihu_username: chao-neng-gui-su
-  twitter_username: renovamen_zxh
-  facebook_username: renovamen.zou
+  #weibo_username:
+  #zhihu_username: chao-neng-gui-su
+  #twitter_username: renovamen_zxh
+  #facebook_username: renovamen.zou
   linkedin_username: adrian-anton-gonzalvez
   email_address: adrianantongonzalvez@gmail.com
 
@@ -109,15 +109,9 @@ menus:
       - title: Me
         font: fas fa-user-astronaut
         url: /about/
-      - title: Theme
-        font: fas fa-meteor
-        url: /theme/
   - title: Archive
     font: fas fa-archive
     url: /archive/
-  - title: Links
-    font: fas fa-link
-    url: /links/
 
 
 # Comment settings
@@ -160,4 +154,4 @@ service-worker: true
 
 
 # Whether or not to enable Hitokoto (the bubble on homepage)
-hitokoto: false # default: false
+hitokoto: enable # default: false
