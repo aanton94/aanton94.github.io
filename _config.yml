@@ -1,7 +1,7 @@
 # Site settings
 title: Anton-Hacks
 SEOTitle: Anton-Hacks
-description: "Writeup's, CTF's & Pentesting"
+description: Writeups, CTFs & Pentesting
 keyword: "Writeup's, CTF's & Pentesting"
 url: "https://aanton94.github.io"                   # your host, for absolute URL
 baseurl: "/blog"                                         # for example, '/blog' if your blog hosted on 'host/blog'
