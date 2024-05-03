@@ -56,9 +56,9 @@ sns:
   RSS: true
   github_username: aanton94
   weibo_username:
-  #zhihu_username: chao-neng-gui-su
-  #twitter_username: renovamen_zxh
-  #facebook_username: renovamen.zou
+  zhihu_username: chao-neng-gui-su
+  twitter_username: renovamen_zxh
+  facebook_username: renovamen.zou
   linkedin_username: adrian-anton-gonzalvez
   email_address: adrianantongonzalvez@gmail.com
 
