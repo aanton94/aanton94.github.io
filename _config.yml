@@ -1,8 +1,8 @@
 # Site settings
 title: Anton-Hacks
-SEOTitle: 
+SEOTitle: Anton-Hacks
 description: "Writeup's, CTF's & Pentesting"
-keyword: "jekyll, theme, blog, blog theme"
+keyword: "Writeup's, CTF's & Pentesting"
 url: "https://aanton94.github.io"                   # your host, for absolute URL
 baseurl: "/blog"                                         # for example, '/blog' if your blog hosted on 'host/blog'
 avatar: "img/header-avatar.jpeg"                    # the avatar showing on the homepage
@@ -54,13 +54,13 @@ collections:
 # SNS settings
 sns:
   RSS: true
-  github_username: Renovamen
+  github_username: aanton94
   weibo_username:
-  zhihu_username: chao-neng-gui-su
-  twitter_username: renovamen_zxh
-  facebook_username: renovamen.zou
-  linkedin_username: xiaohan-zou-55bba0160
-  email_address: renovamenzxh@gmail.com
+  #zhihu_username: chao-neng-gui-su
+  #twitter_username: renovamen_zxh
+  #facebook_username: renovamen.zou
+  linkedin_username: adrian-anton-gonzalvez
+  email_address: adrianantongonzalvez@gmail.com
 
 
 # Build settings
@@ -125,7 +125,7 @@ comment:
   provider: gitalk # false (default), "disqus", "gitalk", "valine"
 
   # Disqus settings
-  disqus_username: renovamen
+  disqus_username: aanton94
 
   # Gitalk settings
   # https://github.com/gitalk/gitalk
@@ -160,4 +160,4 @@ service-worker: true
 
 
 # Whether or not to enable Hitokoto (the bubble on homepage)
-hitokoto: true # default: false
+hitokoto: false # default: false
