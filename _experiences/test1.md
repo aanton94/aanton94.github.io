@@ -1,5 +1,5 @@
 ---
-img: img/experience/otpoint_logo.png
+img: img/experience/otpoint_logo.jpg
 time: 2018 - Actualidad
 institution: OTPOINT
 job: ICS Infrastructure Lead
