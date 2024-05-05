@@ -88,7 +88,7 @@
   </div>
 
   <div class="about-header-info col-md-8">
-    <h3 class="about-title">Biography</h3>
+    <h3 class="about-title">Whoami</h3>
     <div class="biography">
       {% capture about_bio %}{% include about/md/biography.md %}{% endcapture %}
       {{ about_bio | markdownify }}
@@ -97,7 +97,7 @@
     <div class="personal-information">
       <div class="row">
         <div class="col-md-5 interests">
-          <p class="title">Interests</p>
+          <p class="title">Intereses</p>
           <ul>
             {% for item in page.interests %}
             <li><p class="interest-title">{{ item }}</p></li>
@@ -105,7 +105,7 @@
           </ul>
         </div>
         <div class="col-md-7 education">
-            <p class="title">Education</p>
+            <p class="title">Educación</p>
             <ul>
               {% for item in page.education %}
               <li>
