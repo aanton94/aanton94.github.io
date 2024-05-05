@@ -151,4 +151,4 @@ service-worker: true
 
 
 # Whether or not to enable Hitokoto (the bubble on homepage)
-hitokoto: false # default: false
+hitokoto: true # default: false
