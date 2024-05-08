@@ -5,6 +5,8 @@ description: Writeup's, CTF's & Pentesting
 header-img:
   - url: img/home-bg/5.jpg
     mask: rgba(40, 57, 101, .4)
+  - url: img/home-bg/1.jpg
+      mask: rgba(31, 64, 87, .2)
 ---
 
 {%- include utils/get-assets-baseurl.html -%}
@@ -12,7 +14,6 @@ header-img:
 
 {% for post in paginator.posts %}
 {% if post.hide-in-home %}
-<!----------- 不显示 ----------->
 {% else %}
     <!--
       Renoamen: support displaying images on homepage
