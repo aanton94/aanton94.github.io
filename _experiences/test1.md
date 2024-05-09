@@ -5,5 +5,4 @@ institution: OTPOINT
 job: ICS Infrastructure Lead
 ---
 
-- Proyectos de infraestructura IT/OT enfocados en el sector farmacéutico y alimentario. 
-- Servicios de ciberseguridad para proteger el proceso industrial.
+- Proyectos de infraestructura IT/OT enfocados en el sector farmacéutico y alimentario.
