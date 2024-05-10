@@ -131,9 +131,9 @@ menus:
 
   # Valine settings
   # https://valine.js.org/
-  #valine:
-   # appID:
-    #appKey:
+  valine:
+    appID:
+    appKey:
 
 
 # Analytics settings
@@ -141,8 +141,8 @@ menus:
   # Baidu Analytics
   #ba_track_id: 00504d7a0bf51278aa92b36e60e830b5 # [your baidu track id]
 
-  # Google Analytics
-  #ga_track_id: 'G-ZYM02DSEHS'               # [your google track id]
+  Google Analytics
+  ga_track_id: 'G-ZYM02DSEHS'               # [your google track id]
 
 
 # Progressive Web Apps
