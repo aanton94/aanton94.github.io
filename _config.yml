@@ -112,37 +112,37 @@ menus:
 
 
 # Comment settings
-comment:
-  provider: gitalk # false (default), "disqus", "gitalk", "valine"
+#comment:
+ # provider: gitalk # false (default), "disqus", "gitalk", "valine"
 
   # Disqus settings
   disqus_username: aanton94
 
   # Gitalk settings
   # https://github.com/gitalk/gitalk
-  gitalk:
-    clientID: 'faf464da633b08ff5317'
-    clientSecret: '402324fc860894e5fcba6320fddbddd1ec7f5644'
-    repo: gitalk-comments
-    owner: This-is-an-Apple
-    admin:
-      - Renovamen
-      - This-is-an-Apple
+ # gitalk:
+  #  clientID: 'faf464da633b08ff5317'
+   # clientSecret: '402324fc860894e5fcba6320fddbddd1ec7f5644'
+    #repo: gitalk-comments
+    #owner: This-is-an-Apple
+    #admin:
+     # - Renovamen
+      #- This-is-an-Apple
 
   # Valine settings
   # https://valine.js.org/
-  valine:
-    appID:
-    appKey:
+  #valine:
+   # appID:
+    #appKey:
 
 
 # Analytics settings
-analytics:
+#analytics:
   # Baidu Analytics
-  ba_track_id: 00504d7a0bf51278aa92b36e60e830b5 # [your baidu track id]
+  #ba_track_id: 00504d7a0bf51278aa92b36e60e830b5 # [your baidu track id]
 
   # Google Analytics
-  ga_track_id: 'G-ZYM02DSEHS'               # [your google track id]
+  #ga_track_id: 'G-ZYM02DSEHS'               # [your google track id]
 
 
 # Progressive Web Apps
