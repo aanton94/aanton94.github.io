@@ -112,8 +112,8 @@ menus:
 
 
 # Comment settings
-#comment:
- # provider: gitalk # false (default), "disqus", "gitalk", "valine"
+comment:
+  provider: gitalk # false (default), "disqus", "gitalk", "valine"
 
   # Disqus settings
   disqus_username: aanton94
