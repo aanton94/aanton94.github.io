@@ -113,7 +113,7 @@ menus:
 
 # Comment settings
 comment:
-  provider: gitalk # false (default), "disqus", "gitalk", "valine"
+  provider: false # false (default), "disqus", "gitalk", "valine"
 
   # Disqus settings
   disqus_username: aanton94
@@ -138,10 +138,10 @@ comment:
 
 # Analytics settings
 analytics:
-  Baidu Analytics
+ # Baidu Analytics
   ba_track_id: 00504d7a0bf51278aa92b36e60e830b5 # [your baidu track id]
 
-  Google Analytics
+#  Google Analytics
   ga_track_id: 'G-ZYM02DSEHS'               # [your google track id]
 
 
