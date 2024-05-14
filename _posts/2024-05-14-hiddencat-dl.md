@@ -62,6 +62,7 @@ Gracias a los scrips de nmap nos detecta lo siguiente:
 -	Puerto 8009: `Apache Jserv (Protocol v1.3)`{:.error}
 -	Puerto 8080: `Apache Tomcat 9.0.30`{:.error}
 
+#### **Explotación**
 Descartamos de momento atacar al puerto 22 ya que cuenta con una versión de OpenSSH no vulnerable, por tanto, investigamos el puerto 8009 que corre un Apache Jserv. Encontramos la siguiente referencia al respecto en [HackTriks](https://book.hacktricks.xyz/v/es/network-services-pentesting/8009-pentesting-apache-jserv-protocol-ajp), donde se detalla que versiones anteriores a 9.0.31, 8.5.51 y 7.0.100 de Apache Tomcat, si el puerto AJP está expuesto -como es el caso aquí, dado que tenemos la versión 9.0.30 y el puerto 8009 expuesto-, presentan una vulnerabilidad conocida como `Ghostcat`{:.info} (CVE-2020-1938).
 
 En el propio HackTik encontramos un script en Python que permite explotar esta vulnerabilidad, yo he preferido buscarlo en `Metasploit`{:.info}.
