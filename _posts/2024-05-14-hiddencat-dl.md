@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Maquina Upload
+title: Maquina HiddenCat
 subtitle: DockerLabs
 header-img: img/in-post/2020-10-07/upload-dl.png
 header-style: text
@@ -14,7 +14,7 @@ tags:
 ---
 
 #### **Información**
-- **Máquina:** Upload
+- **Máquina:** HiddenCat
 - **Creador:** El Pingüino de Mario
 - **SO:** Linux
 - **Dificultad:** Easy
