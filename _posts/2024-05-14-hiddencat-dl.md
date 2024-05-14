@@ -15,32 +15,54 @@ tags:
 
 #### **Información**
 - **Máquina:** HiddenCat
+- **Plataforma:**[DockerLabs](https://dockerlabs.es/)
 - **Creador:** El Pingüino de Mario
 - **SO:** Linux
 - **Dificultad:** Easy
 
 #### **Configuración Entorno**
-Lo primero que hacemos es descargarnos los archivos de dockerlabs de la maquina.
-![Image 1](https://aanton94.github.io/blog/img/Upload/Img1.png)
+Primeramente, como siempre para configurar las máquinas de DockerLabs, exportamos los ficheros auto_deploy.sh y en este caso hiddencat.tar.
+Para ejecutarlo utilizamos el siguiente comando:
+```bash
+sudo bash auto_deploy.sh hiddencat.tar
+```
+![Image 1](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img1.png)
 
-Una vez descargado ejecutamos el siguiente script:
-![Image 2](https://aanton94.github.io/blog/img/Upload/Img2.png)
+**auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y, una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
 
-**auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y,
-una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
-
-**upload.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
+**hiddencat.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
 
 #### **Reconocimiento**
-Lo primero que realizamos es lanzar un ping contra la IP de la maquina para comprobar que tenemos conectividad.
+Lo primero que realizamos es lanzar un ping contra la IP de la máquina para comprobar que tenemos conectividad.
 ```bash
 ping -c 1 172.17.0.2
 ```
-![Image 3](https://aanton94.github.io/blog/img/Upload/Img3.png)
+![Image 2](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img2.png)
 
 Podemos observar que el ttl es de 64, por tanto, como norma general podemos afirmas que se trata de una maquina linux.
+Una vez comprobada la conectividad, iniciaremos un escaneo con nmap, para detectar puertos abiertos y lo almacenaremos en un fichero llamado scan, con el siguiente comando:
+```bash
+nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
+```
+- **-p-** --> Busqueda de puertos abiertos
+- **--open** --> Enumera los puertos abiertos
+- **-sS** --> Es un modo de escaneo rápido
+- **-sC** --> Que use un conjunto de scripts de reconocimiento
+- **-sV** --> Que encuentre la versión del servicio abierto
+- **--min-rate=5000** --> Hace que el reconocimiento aun vaya más rápido mandando no menos de 5000 paquetes
+- **-n** --> No hace resolución DNS
+- **-Pn** --> No hace ping
+- **-vvv** --> Muestra en pantalla a medida que encuentra puertos (Verbose)
+![Image 3](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img3.png)
+![Image 4](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img4.png)
 
-Una vez comprobada la conectividad, inciaremos un escaneo con nmap, para detectar puertos abiertos y lo almacenaremos en un fichero llamado scan, con el siguiente comando:
+Vemos que tiene abiertos los puertos **22 (SSH), 8080 y 8009**.
+Gracias a los scrips de nmap nos detecta lo siguiente:
+-	Puerto 22: `OpenSSH 7.9p1`{:.succes}
+-	Puerto 8009: `Apache Jserv (Protocol v1.3)`{:.error}
+-	Puerto 8080: `Apache Tomcat 9.0.30`{:.error}
+
+Descartamos de momento atacar al puerto 22 ya que cuenta con una versión de OpenSSH no vulnerable, por tanto, investigamos el puerto 8009 que corre un Apache Jserv. Encontramos la siguiente referencia al respecto en **HackTriks** https://book.hacktricks.xyz/v/es/network-services-pentesting/8009-pentesting-apache-jserv-protocol-ajp, donde se detalla que versiones anteriores a 9.0.31, 8.5.51 y 7.0.100 de Apache Tomcat, si el puerto AJP está expuesto -como es el caso aquí, dado que tenemos la versión 9.0.30 y el puerto 8009 expuesto-, presentan una vulnerabilidad conocida como "Ghostcat" (CVE-2020-1938).
 
 ```bash
 nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
@@ -55,7 +77,7 @@ nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
 - **-Pn** --> No hace ping
 - **-vvv** --> Muestra en pantalla a medida que encuentra puertos (Verbose)
 
-![Image 4](https://aanton94.github.io/blog/img/Upload/Img4.png)
+![Image 4](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img.png)
 
 Podemos observar que solo cuenta con el puerto 80 abierto, al acceder via web nos encontramos con lo siguiente:
 ![Image 5](https://aanton94.github.io/blog/img/Upload/Img5.png)
