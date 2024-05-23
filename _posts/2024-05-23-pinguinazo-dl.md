@@ -1,36 +1,36 @@
 ---
 layout: post
-title: Maquina HiddenCat
+title: Maquina Pinguinazo
 subtitle: DockerLabs
 header-img: img/in-post/2020-10-07/upload-dl.png
 header-style: text
 catalog: true
 tags:
   -  DockerLabs
-  -  Fuerza Bruta
-  -  Binarios UNIX
-  -  Metasploit
+  -  SSTI
+  -  NetCat
+  -  Escalado de privilegios
   -  Reverse Shell
 ---
 
 #### **Información**
-- **Máquina:** HiddenCat
+- **Máquina:** Pinguinazo
 - **Plataforma:** [DockerLabs](https://dockerlabs.es/)
 - **Creador:** El Pingüino de Mario
 - **SO:** Linux
 - **Dificultad:** `Facil`{:.success}
 
 #### **Configuración Entorno**
-Primeramente, como siempre para configurar las máquinas de DockerLabs, exportamos los ficheros auto_deploy.sh y en este caso hiddencat.tar.
+Primeramente, como siempre para configurar las máquinas de DockerLabs, exportamos los ficheros auto_deploy.sh y en este caso pinguinazo.tar.
 Para ejecutarlo utilizamos el siguiente comando:
 ```bash
-sudo bash auto_deploy.sh hiddencat.tar
+sudo bash auto_deploy.sh pinguinazo.tar
 ```
 ![Image 1](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img1.png)
 
 **auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y, una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
 
-**hiddencat.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
+**pinguinazo.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
 
 #### **Reconocimiento**
 Lo primero que realizamos es lanzar un ping contra la IP de la máquina para comprobar que tenemos conectividad.
