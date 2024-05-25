@@ -17,7 +17,7 @@ repository_branch: main
 theme_style:
   highlight:    # "dark" (default), "light"
   alert:        # "flat" (default), "modern"
-  post_preview: text # "image" (default), "text"
+  post_preview: image # "image" (default), "text"
                 # display post's featured image on homepage or not
 
 
