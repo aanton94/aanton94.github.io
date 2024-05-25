@@ -2,7 +2,7 @@
 layout: post
 title: Maquina Collections
 subtitle: DockerLabs
-header-img: img/in-post/2020-10-07/pinguinazo-dl.png
+header-img: img/in-post/2020-10-07/collections-dl.png
 header-style: text
 catalog: true
 tags:
