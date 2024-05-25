@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Maquina Pinguinazo
+title: Maquina Collections
 subtitle: DockerLabs
 header-img: img/in-post/2020-10-07/pinguinazo-dl.png
 header-style: text
@@ -14,11 +14,11 @@ tags:
 ---
 
 #### **Información**
-- **Máquina:** Pinguinazo
+- **Máquina:** Collections
 - **Plataforma:** [DockerLabs](https://dockerlabs.es/)
 - **Creador:** El Pingüino de Mario
 - **SO:** Linux
-- **Dificultad:** `Facil`{:.success}
+- **Dificultad:** `Medio`{:.warning}
 
 #### **Configuración Entorno**
 Primeramente, como siempre para configurar las máquinas de DockerLabs, exportamos los ficheros auto_deploy.sh y en este caso pinguinazo.tar.
