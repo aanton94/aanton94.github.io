@@ -73,7 +73,7 @@ Dentro de la web no vemos nada destaccable, inspeccionando el codigo fuente de l
 ![Image 7](https://aanton94.github.io/blog/img/posts/dl/collection/img7.png)
 
 Lo añadimos el el fichero /etc/hosts y refrescamos la pagina.
-![Image 8](https://aanton94.github.io/blog/img/posts/dl/collections/img8.png)
+![Image 8](https://aanton94.github.io/blog/img/posts/dl/collection/img8.png)
 
 Vemos que la pagina carga mejor pero no detectamos nada destacable, por lo tanto mediante la herramienta WpScan, lanzaremos un escaneo para detectar usuarios y posibles pluguins vulnerables en wordpress.
 ```bash
