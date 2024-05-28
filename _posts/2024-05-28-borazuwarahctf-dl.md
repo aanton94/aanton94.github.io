@@ -26,7 +26,7 @@ Para ejecutarlo utilizamos el siguiente comando:
 ```bash
 sudo bash auto_deploy.sh pinguinazo.tar
 ```
-![Image 1](https://aanton94.github.io/blog/img/posts/dl/collection/img1.png)
+![Image 1](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img1.png)
 
 **auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y, una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
 
@@ -37,7 +37,7 @@ Lo primero que realizamos es lanzar un ping contra la IP de la máquina para com
 ```bash
 ping -c 1 172.17.0.2
 ```
-![Image 2](https://aanton94.github.io/blog/img/posts/dl/collection/img2.png)
+![Image 2](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img2.png)
 
 Podemos observar que el ttl es de 64, por tanto, como norma general podemos afirmas que se trata de una maquina linux.
 Una vez comprobada la conectividad, iniciaremos un escaneo con nmap, para detectar puertos abiertos y lo almacenaremos en un fichero llamado scan, con el siguiente comando:
@@ -53,88 +53,35 @@ nmap -p- --open -sV -sC -sS --min-rate=5000 -vvv -n -Pn 172.17.0.2 -oN scan
 - **-n** --> No hace resolución DNS
 - **-Pn** --> No hace ping
 - **-vvv** --> Muestra en pantalla a medida que encuentra puertos (Verbose)
-![Image 3](https://aanton94.github.io/blog/img/posts/dl/collection/img3.png)
+![Image 3](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img3.png)
 
 
-Vemos que tiene abiertos los puertos **22 (ssh)**, **80 (http)** y **27017 (mongodb)**.
+Vemos que tiene abiertos los puertos **22 (ssh)**, **80 (http)**.
 
 #### **Explotación**
 Lo primero que hacemos es acceder vía web por el puerto 80.
-![Image 4](https://aanton94.github.io/blog/img/posts/dl/collection/img4.png)
+![Image 4](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img4.png)
 
-Tenemos la página de inicio de Apache, pero no detectamos nada destacable.
-Por lo tanto, utilizamos gobuster para hacer fuzzing web.
-![Image 5](https://aanton94.github.io/blog/img/posts/dl/collection/img5.png)
+Tenemos una web que solamente contiene una imagen, esto podría significar que mediante esteganografía hayan introducido algún dato o mensaje dentro de la imagen. Para ello, nos descargamos la imagen para analizarla.
 
-Nos encontramos que tenemos una ruta de wordpress, accedemos a ella y nos encontramos con una web creada en wordpress.
-![Image 6](https://aanton94.github.io/blog/img/posts/dl/collection/img6.png)
+Una vez descargada tratamos de extraer algún mensaje con la herramienta “steghide”. Nos genera un archivo secreto.txt, pero al visualizarlo nos indica que sigamos buscando dentro de la imagen…
+![Image 5](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img5.png)
 
-Dentro de la web no vemos nada destaccable, inspeccionando el codigo fuente de la web encontramos un nombre de dominio **collections.dl**.
-![Image 7](https://aanton94.github.io/blog/img/posts/dl/collection/img7.png)
+Como no es por aqui, utilizaremos la herramiento exiftool, esta herramienta permite leer, escribir y editar metadatos en imágenes y otros archivos multimedia.
+![Image 6](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img6.png)
 
-Lo añadimos el el fichero /etc/hosts y refrescamos la pagina.
-![Image 8](https://aanton94.github.io/blog/img/posts/dl/collection/img8.png)
+Encontramos el usuario **borazuwarah**, pero no encontramos ninguna contraseña. Como tenemos el puerto 22 de ssh abierto, probaremos a realizar fuerza bruta al usuario que hemos encontrado.
+Para ello utilizaremos la herramienta de hydra y el diccionario de contraseñas comunes rockyou.txt
+![Image 7](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img7.png)
 
-Vemos que la pagina carga mejor pero no detectamos nada destacable, por lo tanto mediante la herramienta WpScan, lanzaremos un escaneo para detectar usuarios y posibles pluguins vulnerables en wordpress.
-```bash
-wpscan --url http://collections.dl/wordpress -e u,vp 
-```
-- **u** --> Busqueda de usuarios
-- **vp** --> Enumera los plugins vulnerables
-
-![Image 9](https://aanton94.github.io/blog/img/posts/dl/collection/img9.png)
-
-Nos encuentra el usuario **chocolate** :chocolate_bar:
-Probamos a realizar fuerza bruta al usuario utilizando el siguiente comando con WpScan y el diccionario Rockyou.
-
-```bash
-wpscan --url http://collections.dl/wordpress --passwords /usr/share/wordlists/rockyou.txt 
-```
-![Image 10](https://aanton94.github.io/blog/img/posts/dl/collection/img10.png)
-
-Y nos encuentra que el password es el mismo que el usuario :angry:
-
-Como ya tenemos usuario y password, accedemos al panel de administracion de Wordpress.
-![Image 11](https://aanton94.github.io/blog/img/posts/dl/collection/img11.png)
-![Image 12](https://aanton94.github.io/blog/img/posts/dl/collection/img12.png)
-
-En el menú, accedemos a los plugins instalados y vemos que tenemos el plugin Site Editor Version 1.1 instalado.
-Buscamos información sobre este plugin y vemos que es vulnerable a LFI (Local File Inclusion), y encontramos un script que permite explotar esta vulnerabilidad, por tanto lo descargamos desde [https://github.com/jessisec/CVE-2018-7422](https://github.com/jessisec/CVE-2018-7422).
-![Image 13](https://aanton94.github.io/blog/img/posts/dl/collection/img13.png)
-
-Lo ejecutamos siguiendo las instrucciones, y conseguimos leer el fichero /etc/passwd.
-![Image 14](https://aanton94.github.io/blog/img/posts/dl/collection/img14.png)
-
-Encontramos los usuarios de sistema **chocolate** y **dbadmin**.
-
-Tratamos de acceder vía SSH con el usuario chocolate y la contraseña que encontramos anteriormente, pero no logramos acceder, por lo tanto, aplicamos fuerza bruta con hydra a la conexión SSH.
-
-```bash
-hydra 172.17.0.2 ssh -s 22 -l chocolate -P /usr/share/wordlists/rockyou.txt -f -I -t 64 
-```
-![Image 15](https://aanton94.github.io/blog/img/posts/dl/collection/img15.png)
-
-Encontramos la contraseña del usuario **chocolate**, así que, accedemos vía SSH y logramos la conexión.
-![Image 16](https://aanton94.github.io/blog/img/posts/dl/collection/img16.png)
-
-Encontramos el archivo **mongodb-27017.sock** en el directorio /tmp. Tratamos de ejecutar mongodb desde la maquina víctima, pero no nos permite, como tenía expuesto mongodb por el puerto **27017**, lanzaremos la conexión desde la maquina atacante (tuve que instalar mongodb).
-![Image 17](https://aanton94.github.io/blog/img/posts/dl/collection/img17.png)
-
-Una vez conectados, revisamos que bases de datos tenemos, nos llama la atención la base de datos **accesos**, dentro de ella encontramos la colección **usuarios** y al leer los datos descubrimos el usuario dbadmin y su password.
-![Image 18](https://aanton94.github.io/blog/img/posts/dl/collection/img18.png)
-
-Accedemos con este usuario por SSH para comprobar si podemos realizar la escalada de privilegios, pero no detectamos nada potencialmente vulnerable.
-![Image 19](https://aanton94.github.io/blog/img/posts/dl/collection/img19.png)
-
-Como no detectamos nada probamos a acceder como root con las diferentes contraseñas que hemos encontrado y logramos acceder con la contraseña del usuario **dbadmin**.
-![Image 20](https://aanton94.github.io/blog/img/posts/dl/collection/img20.png)
+Efectivamente encontramos el password del usuario **borazuwarah** para la conexión por SSH. Nos conectamos y revisamos que podemos ejecutar como root, vemos que podemos ejecutar /bin/bash, por tanto lo ejecutamos con sudo, y ya conseguiríamos ser root.
+![Image 8](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img8.png)
 
 ¡¡¡¡Así que, hemos conseguido ser `root`{:.success}!!!! 
 
 #### **Eliminación del entorno**
 
 Para borrar la máquina solo debemos ir a la consola donde lo desplegamos y presionar `ctrl+c`{:.info} y eliminaría y borraría todo rastro de la máquina víctima en nuestro sistema LINUX.
-
-![Image 10](https://aanton94.github.io/blog/img/posts/dl/hiddencat/img10.png)
+![Image 9](https://aanton94.github.io/blog/img/posts/dl/borazuwarahctf/img9.png)
 
 `¡¡¡Espero que os haya gustado y nos vemos en la próxima!!!`{:.success}
