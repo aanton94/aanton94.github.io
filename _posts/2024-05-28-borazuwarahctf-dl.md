@@ -1,24 +1,24 @@
 ---
 layout: post
-title: Maquina Collections
+title: Maquina BorazuwarahCTF
 subtitle: DockerLabs
-header-img: img/in-post/2020-10-07/collections-dl.png
+header-img: img/in-post/2020-10-07/borazuwarahctf-dl.png
 header-style: text
 catalog: true
 tags:
   -  DockerLabs
-  -  SSTI
-  -  NetCat
+  -  Esteganografía
+  -  Steghide
   -  Escalado de privilegios
-  -  Reverse Shell
+  -  Fuerza bruta
 ---
 
 #### **Información**
-- **Máquina:** Collections
+- **Máquina:** BorazuwarahCTF
 - **Plataforma:** [DockerLabs](https://dockerlabs.es/)
 - **Creador:** El Pingüino de Mario
 - **SO:** Linux
-- **Dificultad:** `Medio`{:.warning}
+- **Dificultad:** `Muy Facil`{:.info}
 
 #### **Configuración Entorno**
 Primeramente, como siempre para configurar las máquinas de DockerLabs, exportamos los ficheros auto_deploy.sh y en este caso pinguinazo.tar.
@@ -30,7 +30,7 @@ sudo bash auto_deploy.sh pinguinazo.tar
 
 **auto_deploy.sh:** este archivo se encarga de desplegar la máquina mediante docker y, una vez presionamos `ctrl+c`{:.info} pasa a un proceso de borrado, todo automático, sin necesidad de tener conocimientos de docker.
 
-**collections.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
+**borazuwarahctf.tar:** contiene todo el contenido de la máquina docker; es el corazón, donde está la máquina víctima.
 
 #### **Reconocimiento**
 Lo primero que realizamos es lanzar un ping contra la IP de la máquina para comprobar que tenemos conectividad.
